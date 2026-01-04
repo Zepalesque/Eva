@@ -35,12 +35,14 @@ impl VmCtx {
         unsafe { &mut *self.regs.add(idx as usize) }
     }
 
-    pub fn read_reg(&mut self) -> &mut Register {
-        self.get_reg(self.decoder.read())
+    pub fn read_reg<const PS: usize>(&mut self) -> &mut Register {
+        let idx = self.decoder.read::<u16, PS>();
+        self.get_reg(idx)
     }
 
-    pub fn reg_as<T: Registrant>(&mut self) -> T {
-        self.get_reg(self.decoder.read()).get::<T>()
+    pub fn reg_as<T: Registrant, const PS: usize>(&mut self) -> T {
+        let idx = self.decoder.read::<u16, PS>();
+        self.get_reg(idx).get::<T>()
     }
 }
 
@@ -68,7 +70,8 @@ fn main() -> u32 { unsafe {
                 .as_str())
         ).map_anon().expect("Failed to create register block").as_ptr();
     let mut decoder: Decoder = Decoder { start: binary.as_ptr(), offs: 0 };
-    let header: BytecodeHeader = BytecodeHeader::read(&mut decoder).clone();
+    // PointerSize const param is irrelevant at this point
+    let header: BytecodeHeader = BytecodeHeader::read::<0>(&mut decoder).clone();
 
     let x64 = header.is_x64();
     if size_of::<usize>() < 8 && x64 {
@@ -85,276 +88,276 @@ fn main() -> u32 { unsafe {
     start(ctx)
 }}
 
-fn start(mut ctx: VmCtx) -> u32 {
+fn start<const PS: usize>(mut ctx: VmCtx) -> u32 {
     loop {
-        match ctx.decoder.read::<OpCode>() {
+        match ctx.decoder.read::<OpCode, PS>() {
             OpCode::Noop => { continue; }
             OpCode::Const8 => {
-                ctx.read_reg().set(ctx.decoder.read::<u8>());
+                ctx.read_reg().set(ctx.decoder.read::<u8, PS>());
             }
             OpCode::Const16 => {
-                ctx.read_reg().set(ctx.decoder.read::<u16>());
+                ctx.read_reg().set(ctx.decoder.read::<u16, PS>());
             }
             OpCode::Const32 => {
-                ctx.read_reg().set(ctx.decoder.read::<u32>());
+                ctx.read_reg().set(ctx.decoder.read::<u32, PS>());
             }
             OpCode::Const64 => {
-                ctx.read_reg().set(ctx.decoder.read::<u64>());
+                ctx.read_reg().set(ctx.decoder.read::<u64, PS>());
             }
             OpCode::SignExt64 => {
-                ctx.read_reg().set(ctx.reg_as::<i32>() as i64);
+                ctx.read_reg().set(ctx.reg_as::<i32, PS>() as i64);
             },
             OpCode::SignExt32 => {
-                ctx.read_reg().set(ctx.reg_as::<i16>() as i32);
+                ctx.read_reg().set(ctx.reg_as::<i16, PS>() as i32);
             },
             OpCode::SignExt16 => {
-                ctx.read_reg().set(ctx.reg_as::<i8>() as i16);
+                ctx.read_reg().set(ctx.reg_as::<i8, PS>() as i16);
             },
             OpCode::Truncat32 => {
-                ctx.read_reg().set(ctx.reg_as::<u64>() as u32);
+                ctx.read_reg().set(ctx.reg_as::<u64, PS>() as u32);
             },
             OpCode::Truncat16 => {
-                ctx.read_reg().set(ctx.reg_as::<u64>() as u16);
+                ctx.read_reg().set(ctx.reg_as::<u64, PS>() as u16);
             },
             OpCode::Truncat8 => {
-                ctx.read_reg().set(ctx.reg_as::<u64>() as u8);
+                ctx.read_reg().set(ctx.reg_as::<u64, PS>() as u8);
             },
             OpCode::U32ToF32 => {
-                ctx.read_reg().set(ctx.reg_as::<u32>() as f32);
+                ctx.read_reg().set(ctx.reg_as::<u32, PS>() as f32);
             },
             OpCode::I32ToF32 => {
-                ctx.read_reg().set(ctx.reg_as::<i32>() as f32);
+                ctx.read_reg().set(ctx.reg_as::<i32, PS>() as f32);
             },
             OpCode::U64ToF64 => {
-                ctx.read_reg().set(ctx.reg_as::<u64>() as f64);
+                ctx.read_reg().set(ctx.reg_as::<u64, PS>() as f64);
             },
             OpCode::I64ToF64 => {
-                ctx.read_reg().set(ctx.reg_as::<i64>() as f64);
+                ctx.read_reg().set(ctx.reg_as::<i64, PS>() as f64);
             },
             OpCode::F32ToU32 => {
-                ctx.read_reg().set(ctx.reg_as::<f32>() as u32);
+                ctx.read_reg().set(ctx.reg_as::<f32, PS>() as u32);
             },
             OpCode::F64ToU64 => {
-                ctx.read_reg().set(ctx.reg_as::<f64>() as u64);
+                ctx.read_reg().set(ctx.reg_as::<f64, PS>() as u64);
             },
             OpCode::F32ToI32 => {
-                ctx.read_reg().set(ctx.reg_as::<f32>() as i32);
+                ctx.read_reg().set(ctx.reg_as::<f32, PS>() as i32);
             },
             OpCode::F64ToI64 => {
-                ctx.read_reg().set(ctx.reg_as::<f64>() as i64);
+                ctx.read_reg().set(ctx.reg_as::<f64, PS>() as i64);
             },
             OpCode::FProm => {
-                ctx.read_reg().set(ctx.reg_as::<f32>() as f64);
+                ctx.read_reg().set(ctx.reg_as::<f32, PS>() as f64);
             },
             OpCode::FDemo => {
-                ctx.read_reg().set(ctx.reg_as::<f64>() as f32);
+                ctx.read_reg().set(ctx.reg_as::<f64, PS>() as f32);
             },
             OpCode::IAdd32 => {
-                binary_op!(ctx -> u32: wrapping_add);
+                binary_op!(ctx<PS> -> u32: wrapping_add);
             },
             OpCode::IAdd64 => {
-                binary_op!(ctx -> u64: wrapping_add);
+                binary_op!(ctx<PS> -> u64: wrapping_add);
             },
             OpCode::ISub32 => {
-                binary_op!(ctx -> u32: wrapping_sub);
+                binary_op!(ctx<PS> -> u32: wrapping_sub);
             },
             OpCode::ISub64 => {
-                binary_op!(ctx -> u64: wrapping_sub);
+                binary_op!(ctx<PS> -> u64: wrapping_sub);
             },
             OpCode::FAdd32 => {
-                binary_op!(ctx -> f32: wrapping_add);
+                binary_op!(ctx<PS> -> f32: +);
             },
             OpCode::FAdd64 => {
-                binary_op!(ctx -> f64: wrapping_add);
+                binary_op!(ctx<PS> -> f64: +);
             },
             OpCode::FSub32 => {
-                binary_op!(ctx -> f32: wrapping_sub);
+                binary_op!(ctx<PS> -> f32: -);
             },
             OpCode::FSub64 => {
-                binary_op!(ctx -> f64: wrapping_sub);
+                binary_op!(ctx<PS> -> f64: -);
             },
             OpCode::IMul32 => {
-                binary_op!(ctx -> u32: wrapping_mul);
+                binary_op!(ctx<PS> -> u32: wrapping_mul);
             },
             OpCode::IMul64 => {
-                binary_op!(ctx -> u64: wrapping_mul);
+                binary_op!(ctx<PS> -> u64: wrapping_mul);
             },
             OpCode::FMul32 => {
-                binary_op!(ctx -> f32: wrapping_mul);
+                binary_op!(ctx<PS> -> f32: *);
             },
             OpCode::FMul64 => {
-                binary_op!(ctx -> f64: wrapping_mul);
+                binary_op!(ctx<PS> -> f64: *);
             },
             OpCode::IDivI8  => {
-                binary_op!(ctx -> i8: /);
+                binary_op!(ctx<PS> -> i8: /);
             },
             OpCode::IDivI16 => {
-                binary_op!(ctx -> i16: /);
+                binary_op!(ctx<PS> -> i16: /);
             },
             OpCode::IDivI32 => {
-                binary_op!(ctx -> i32: /);
+                binary_op!(ctx<PS> -> i32: /);
             },
             OpCode::IDivI64 => {
-                binary_op!(ctx -> i64: /);
+                binary_op!(ctx<PS> -> i64: /);
             },
             OpCode::IDivU8  => {
-                binary_op!(ctx -> u8: /);
+                binary_op!(ctx<PS> -> u8: /);
             },
             OpCode::IDivU16 => {
-                binary_op!(ctx -> u16: /);
+                binary_op!(ctx<PS> -> u16: /);
             },
             OpCode::IDivU32 => {
-                binary_op!(ctx -> u32: /);
+                binary_op!(ctx<PS> -> u32: /);
             },
             OpCode::IDivU64 => {
-                binary_op!(ctx -> u64: /);
+                binary_op!(ctx<PS> -> u64: /);
             },
             OpCode::FDiv32 => {
-                binary_op!(ctx -> f32: /);
+                binary_op!(ctx<PS> -> f32: /);
             },
             OpCode::FDiv64 => {
-                binary_op!(ctx -> f64: /);
+                binary_op!(ctx<PS> -> f64: /);
             },
             OpCode::IModI8 => {
-                binary_op!(ctx -> i8: %);
+                binary_op!(ctx<PS> -> i8: %);
             },
             OpCode::IModI16 => {
-                binary_op!(ctx -> i16: %);
+                binary_op!(ctx<PS> -> i16: %);
             },
             OpCode::IModI32 => {
-                binary_op!(ctx -> i32: %);
+                binary_op!(ctx<PS> -> i32: %);
             },
             OpCode::IModI64 => {
-                binary_op!(ctx -> i64: %);
+                binary_op!(ctx<PS> -> i64: %);
             },
             OpCode::IModU8 => {
-                binary_op!(ctx -> u8: %);
+                binary_op!(ctx<PS> -> u8: %);
             },
             OpCode::IModU16 => {
-                binary_op!(ctx -> u16: %);
+                binary_op!(ctx<PS> -> u16: %);
             },
             OpCode::IModU32 => {
-                binary_op!(ctx -> u32: %);
+                binary_op!(ctx<PS> -> u32: %);
             },
             OpCode::IModU64 => {
-                binary_op!(ctx -> u64: %);
+                binary_op!(ctx<PS> -> u64: %);
             },
             OpCode::FMod32 => {
-                binary_op!(ctx -> f32: %);
+                binary_op!(ctx<PS> -> f32: %);
             },
             OpCode::FMod64 => {
-                binary_op!(ctx -> f64: %);
+                binary_op!(ctx<PS> -> f64: %);
             },
             OpCode::IAnd8 => {
-                binary_op!(ctx -> u8: &);
+                binary_op!(ctx<PS> -> u8: &);
             },
             OpCode::IAnd16 => {
-                binary_op!(ctx -> u16: &);
+                binary_op!(ctx<PS> -> u16: &);
             },
             OpCode::IAnd32 => {
-                binary_op!(ctx -> u32: &);
+                binary_op!(ctx<PS> -> u32: &);
             },
             OpCode::IAnd64 => {
-                binary_op!(ctx -> u64: &);
+                binary_op!(ctx<PS> -> u64: &);
             },
             OpCode::IOr8 => {
-                binary_op!(ctx -> u8: |);
+                binary_op!(ctx<PS> -> u8: |);
             },
             OpCode::IOr16 => {
-                binary_op!(ctx -> u16: |);
+                binary_op!(ctx<PS> -> u16: |);
             },
             OpCode::IOr32 => {
-                binary_op!(ctx -> u32: |);
+                binary_op!(ctx<PS> -> u32: |);
             },
             OpCode::IOr64 => {
-                binary_op!(ctx -> u64: |);
+                binary_op!(ctx<PS> -> u64: |);
             },
             OpCode::IXor8 => {
-                binary_op!(ctx -> u8: ^);
+                binary_op!(ctx<PS> -> u8: ^);
             },
             OpCode::IXor16 => {
-                binary_op!(ctx -> u16: ^);
+                binary_op!(ctx<PS> -> u16: ^);
             },
             OpCode::IXor32 => {
-                binary_op!(ctx -> u32: ^);
+                binary_op!(ctx<PS> -> u32: ^);
             },
             OpCode::IXor64 => {
-                binary_op!(ctx -> u64: ^);
+                binary_op!(ctx<PS> -> u64: ^);
             },
             OpCode::INot8 => {
-                unary_op!(ctx -> u8: ~);
+                unary_op!(ctx<PS> -> u8: !);
             },
             OpCode::INot16 => {
-                unary_op!(ctx -> u16: ~);
+                unary_op!(ctx<PS> -> u16: !);
             },
             OpCode::INot32 => {
-                unary_op!(ctx -> u32: ~);
+                unary_op!(ctx<PS> -> u32: !);
             },
             OpCode::INot64 => {
-                unary_op!(ctx -> u64: ~);
+                unary_op!(ctx<PS> -> u64: !);
             },
             OpCode::ILsh8 => {
-                binary_op!(ctx -> u8, u32: <<)
+                binary_op!(ctx<PS> -> u8, u32: <<)
             },
             OpCode::ILsh16 => {
-                binary_op!(ctx -> u16, u32: <<)
+                binary_op!(ctx<PS> -> u16, u32: <<)
             },
             OpCode::ILsh32 => {
-                binary_op!(ctx -> u32, u32: <<)
+                binary_op!(ctx<PS> -> u32, u32: <<)
             },
             OpCode::ILsh64 => {
-                binary_op!(ctx -> u64, u32: <<)
+                binary_op!(ctx<PS> -> u64, u32: <<)
             },
             OpCode::IRshU8 => {
-                binary_op!(ctx -> u8, u32: >>)
+                binary_op!(ctx<PS> -> u8, u32: >>)
             },
             OpCode::IRshU16 => {
-                binary_op!(ctx -> u16, u32: >>)
+                binary_op!(ctx<PS> -> u16, u32: >>)
             },
             OpCode::IRshU32 => {
-                binary_op!(ctx -> u32, u32: >>)
+                binary_op!(ctx<PS> -> u32, u32: >>)
             },
             OpCode::IRshU64 => {
-                binary_op!(ctx -> u64, u32: >>)
+                binary_op!(ctx<PS> -> u64, u32: >>)
             },
             OpCode::IRshI8 => {
-                binary_op!(ctx -> i8, u32: >>)
+                binary_op!(ctx<PS> -> i8, u32: >>)
             },
             OpCode::IRshI16 => {
-                binary_op!(ctx -> i16, u32: >>)
+                binary_op!(ctx<PS> -> i16, u32: >>)
             },
             OpCode::IRshI32 => {
-                binary_op!(ctx -> i32, u32: >>)
+                binary_op!(ctx<PS> -> i32, u32: >>)
             },
             OpCode::IRshI64 => {
-                binary_op!(ctx -> i64, u32: >>)
+                binary_op!(ctx<PS> -> i64, u32: >>)
             },
             OpCode::ILrot8 => {
-                binary_op!(ctx -> u8, u32: rotate_left)
+                binary_op!(ctx<PS> -> u8, u32: rotate_left)
             },
             OpCode::ILrot16 => {
-                binary_op!(ctx -> u16, u32: rotate_left)
+                binary_op!(ctx<PS> -> u16, u32: rotate_left)
             },
             OpCode::ILrot32 => {
-                binary_op!(ctx -> u32, u32: rotate_left)
+                binary_op!(ctx<PS> -> u32, u32: rotate_left)
             },
             OpCode::ILrot64 => {
-                binary_op!(ctx -> u64, u32: rotate_left)
+                binary_op!(ctx<PS> -> u64, u32: rotate_left)
             },
             OpCode::IRrot8 => {
-                binary_op!(ctx -> u8, u32: rotate_right)
+                binary_op!(ctx<PS> -> u8, u32: rotate_right)
             },
             OpCode::IRrot16 => {
-                binary_op!(ctx -> u16, u32: rotate_right)
+                binary_op!(ctx<PS> -> u16, u32: rotate_right)
             },
             OpCode::IRrot32 => {
-                binary_op!(ctx -> u32, u32: rotate_right)
+                binary_op!(ctx<PS> -> u32, u32: rotate_right)
             },
             OpCode::IRrot64 => {
-                binary_op!(ctx -> u64, u32: rotate_right)
+                binary_op!(ctx<PS> -> u64, u32: rotate_right)
             },
             OpCode::RegAddr => {
-                ctx.read_reg().set(ctx.regs as usize + ctx.decoder.read::<u16>() as usize);
+                ctx.read_reg().set(ctx.regs as usize + ctx.decoder.read::<u16, PS>() as usize);
             }
         }
     }

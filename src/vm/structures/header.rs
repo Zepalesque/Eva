@@ -18,7 +18,7 @@ impl BytecodeHeader {
 
 impl Decode for BytecodeHeader {
     fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
-        let fmt: Format = unsafe { decoder.read_byte() };
+        let fmt: Format = decoder.read_byte();
         Self { format: fmt }
     }
 }

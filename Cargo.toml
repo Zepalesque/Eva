@@ -13,8 +13,7 @@ memmap2 = "0.9.9"
 clap = { version = "4.5.53", features = ["derive"] }
 size = "0.5.0"
 extendable_vm = "0.4.0"
-inkwell = { version = "0.7.1", features = ["llvm21-1"] }
-rand = "0.10.0-rc.5"
+cranelift = "0.127.0"
 num_enum = "0.7.5"
 
 

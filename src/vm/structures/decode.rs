@@ -32,8 +32,8 @@ impl Decoder {
         arr
     }
 
-    pub fn read<T: Decode>(&mut self) -> T {
-        T::read(self)
+    pub fn read<T: Decode, const PS: usize>(&mut self) -> T {
+        T::read::<PS>(self)
     }
 
     pub fn fork_abs(&self, offs: usize) -> Self {
