@@ -5,7 +5,6 @@
 #![feature(ergonomic_clones)]
 #![feature(macro_metavar_expr)]
 #![feature(macro_metavar_expr_concat)]
-
 use crate::structures::decode::{Decode, Decoder};
 use crate::structures::header::BytecodeHeader;
 use clap::Parser;
@@ -14,7 +13,6 @@ use memmap2::Mmap;
 use memmap2::MmapOptions;
 use size::Size;
 use std::fs::File;
-use std::intrinsics::{rotate_left, rotate_right, wrapping_add, wrapping_mul, wrapping_sub};
 use std::path::PathBuf;
 use structures::registers::*;
 use dispatch::*;
@@ -54,7 +52,7 @@ struct Args {
     reg_size: Size,
 }
 
-fn main() -> u32 { unsafe {
+fn main() { unsafe {
     let args: Args = Args::parse();
 
     let file = File::open(&args.run).expect("file not found");
@@ -84,8 +82,11 @@ fn main() -> u32 { unsafe {
     };
 
 
-
-    start(ctx)
+    if x64 {
+        start::<64>(ctx);
+    } else {
+        start::<32>(ctx);
+    }
 }}
 
 fn start<const PS: usize>(mut ctx: VmCtx) -> u32 {
@@ -93,64 +94,64 @@ fn start<const PS: usize>(mut ctx: VmCtx) -> u32 {
         match ctx.decoder.read::<OpCode, PS>() {
             OpCode::Noop => { continue; }
             OpCode::Const8 => {
-                ctx.read_reg().set(ctx.decoder.read::<u8, PS>());
+                read!(ctx<PS> -> u8);
             }
             OpCode::Const16 => {
-                ctx.read_reg().set(ctx.decoder.read::<u16, PS>());
+                read!(ctx<PS> -> u16);
             }
             OpCode::Const32 => {
-                ctx.read_reg().set(ctx.decoder.read::<u32, PS>());
+                read!(ctx<PS> -> u32);
             }
             OpCode::Const64 => {
-                ctx.read_reg().set(ctx.decoder.read::<u64, PS>());
+                read!(ctx<PS> -> u64);
             }
             OpCode::SignExt64 => {
-                ctx.read_reg().set(ctx.reg_as::<i32, PS>() as i64);
+                conv!(ctx<PS> -> i32 as i64);
             },
             OpCode::SignExt32 => {
-                ctx.read_reg().set(ctx.reg_as::<i16, PS>() as i32);
+                conv!(ctx<PS> -> i16 as i32);
             },
             OpCode::SignExt16 => {
-                ctx.read_reg().set(ctx.reg_as::<i8, PS>() as i16);
+                conv!(ctx<PS> -> i8 as i16);
             },
             OpCode::Truncat32 => {
-                ctx.read_reg().set(ctx.reg_as::<u64, PS>() as u32);
+                conv!(ctx<PS> -> u64 as u32);
             },
             OpCode::Truncat16 => {
-                ctx.read_reg().set(ctx.reg_as::<u64, PS>() as u16);
+                conv!(ctx<PS> -> u64 as u16);
             },
             OpCode::Truncat8 => {
-                ctx.read_reg().set(ctx.reg_as::<u64, PS>() as u8);
+                conv!(ctx<PS> -> u64 as u8);
             },
             OpCode::U32ToF32 => {
-                ctx.read_reg().set(ctx.reg_as::<u32, PS>() as f32);
+                conv!(ctx<PS> -> u32 as f32);
             },
             OpCode::I32ToF32 => {
-                ctx.read_reg().set(ctx.reg_as::<i32, PS>() as f32);
+                conv!(ctx<PS> -> i32 as f32);
             },
             OpCode::U64ToF64 => {
-                ctx.read_reg().set(ctx.reg_as::<u64, PS>() as f64);
+                conv!(ctx<PS> -> u64 as f64);
             },
             OpCode::I64ToF64 => {
-                ctx.read_reg().set(ctx.reg_as::<i64, PS>() as f64);
+                conv!(ctx<PS> -> i64 as f64);
             },
             OpCode::F32ToU32 => {
-                ctx.read_reg().set(ctx.reg_as::<f32, PS>() as u32);
+                conv!(ctx<PS> -> f32 as u32);
             },
             OpCode::F64ToU64 => {
-                ctx.read_reg().set(ctx.reg_as::<f64, PS>() as u64);
+                conv!(ctx<PS> -> f64 as u64);
             },
             OpCode::F32ToI32 => {
-                ctx.read_reg().set(ctx.reg_as::<f32, PS>() as i32);
+                conv!(ctx<PS> -> f32 as i32);
             },
             OpCode::F64ToI64 => {
-                ctx.read_reg().set(ctx.reg_as::<f64, PS>() as i64);
+                conv!(ctx<PS> -> f64 as i64);
             },
             OpCode::FProm => {
-                ctx.read_reg().set(ctx.reg_as::<f32, PS>() as f64);
+                conv!(ctx<PS> -> f32 as f64);
             },
             OpCode::FDemo => {
-                ctx.read_reg().set(ctx.reg_as::<f64, PS>() as f32);
+                conv!(ctx<PS> -> f64 as f32);
             },
             OpCode::IAdd32 => {
                 binary_op!(ctx<PS> -> u32: wrapping_add);
@@ -357,7 +358,10 @@ fn start<const PS: usize>(mut ctx: VmCtx) -> u32 {
                 binary_op!(ctx<PS> -> u64, u32: rotate_right)
             },
             OpCode::RegAddr => {
-                ctx.read_reg().set(ctx.regs as usize + ctx.decoder.read::<u16, PS>() as usize);
+                let start = ctx.regs as usize;
+                let idx = ctx.decoder.read::<u16, PS>() as usize;
+                let reg = ctx.read_reg::<PS>();
+                reg.set(start + idx);
             }
         }
     }

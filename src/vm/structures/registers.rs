@@ -20,9 +20,7 @@ impl Register {
 }
 
 pub trait Registrant {
-    #[inline(always)]
     fn from_reg(reg: &Register) -> Self;
-    #[inline(always)]
     fn to_reg(&self, reg: &mut Register);
 }
 

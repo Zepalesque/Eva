@@ -26,7 +26,7 @@ impl Decoder {
     }
 
     pub fn read_arr<'a, const N: usize>(&mut self) -> [u8; N] {
-        if N == 0 { return []; }
+        if N == 0 { return [0u8; N]; }
         let arr = unsafe {std::ptr::read_unaligned(self.curr() as *const [u8; N]) };
         self.offs += N;
         arr
@@ -107,10 +107,13 @@ impl Decode for u64 {
 
 impl Decode for usize {
     fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+        let bytes = decoder.read_arr::<PS>();
+        let mut arr = [0u8; 8];
+        arr[0..bytes.len()].copy_from_slice(&bytes);
         if IS_BIG_ENDIAN {
-            Self::from_be_bytes(decoder.read_arr::<PS>())
+            Self::from_be_bytes(arr)
         } else {
-            Self::from_le_bytes(decoder.read_arr::<PS>())
+            Self::from_le_bytes(arr)
         }
     }
 }
@@ -153,10 +156,13 @@ impl Decode for i64 {
 
 impl Decode for isize {
     fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+        let bytes = decoder.read_arr::<PS>();
+        let mut arr = [0u8; 8];
+        arr[0..bytes.len()].copy_from_slice(&bytes);
         if IS_BIG_ENDIAN {
-            Self::from_be_bytes(decoder.read_arr::<PS>())
+            Self::from_be_bytes(arr)
         } else {
-            Self::from_le_bytes(decoder.read_arr::<PS>())
+            Self::from_le_bytes(arr)
         }
     }
 }
@@ -182,7 +188,7 @@ impl Decode for f64 {
 
 impl Decode for OpCode {
     fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
-        let num = u8::read(decoder);
+        let num = u8::read::<PS>(decoder);
         OpCode::try_from(num).expect("Invalid OpCode found: {}")
     }
 }
