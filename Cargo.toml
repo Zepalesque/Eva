@@ -1,0 +1,27 @@
+[package]
+name = "eva"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ariadne = "0.6.0"
+chumsky = "0.12.0"
+semantic-analyzer = "0.4.6"
+polonius = "0.3.0"
+pastey = "0.2.1"
+memmap2 = "0.9.9"
+clap = { version = "4.5.53", features = ["derive"] }
+size = "0.5.0"
+extendable_vm = "0.4.0"
+inkwell = { version = "0.7.1", features = ["llvm21-1"] }
+rand = "0.10.0-rc.5"
+num_enum = "0.7.5"
+
+
+[lib]
+name = "eva"
+path = "src/lib.rs"
+
+[[bin]]
+name = "vm"
+path = "src/vm/mod.rs"
