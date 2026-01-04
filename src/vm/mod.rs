@@ -88,7 +88,7 @@ fn main() -> u32 { unsafe {
 fn start(mut ctx: VmCtx) -> u32 {
     loop {
         match ctx.decoder.read::<OpCode>() {
-            OpCode::Nop => { continue; }
+            OpCode::Noop => { continue; }
             OpCode::Const8 => {
                 ctx.read_reg().set(ctx.decoder.read::<u8>());
             }

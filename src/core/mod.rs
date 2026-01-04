@@ -4,7 +4,7 @@ pub const IS_BIG_ENDIAN: bool = true;
 #[derive(Debug, Eq, PartialEq, TryFromPrimitive, IntoPrimitive)]
 #[repr(u8)]
 pub enum OpCode {
-    Nop, // noop
+    Noop, // noop
     Const8, // const
     Const16, // const
     Const32, // const
