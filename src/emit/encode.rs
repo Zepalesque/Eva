@@ -18,28 +18,28 @@ impl Encoder {
         self.bytes.extend_from_slice(bytes);
     }
 
-    fn write<T: Encodee>(&mut self, val: T) {
+    fn write<T: Encode>(&mut self, val: T) {
         val.write(self);
     }
 }
 
-pub trait Encodee {
+pub trait Encode {
     fn write(&self, encoder: &mut Encoder);
 }
 
-impl Encodee for u8 {
+impl Encode for u8 {
     fn write(&self, encoder: &mut Encoder) {
         encoder.write_byte(*self);
     }
 }
 
-impl Encodee for bool {
+impl Encode for bool {
     fn write(&self, encoder: &mut Encoder) {
         encoder.write_byte(*self as u8);
     }
 }
 
-impl Encodee for u16 {
+impl Encode for u16 {
     fn write(&self, encoder: &mut Encoder) {
         if IS_BIG_ENDIAN {
             encoder.write_arr(&self.to_be_bytes());
@@ -49,7 +49,7 @@ impl Encodee for u16 {
     }
 }
 
-impl Encodee for u32 {
+impl Encode for u32 {
     fn write(&self, encoder: &mut Encoder) {
         if IS_BIG_ENDIAN {
             encoder.write_arr(&self.to_be_bytes());
@@ -59,7 +59,7 @@ impl Encodee for u32 {
     }
 }
 
-impl Encodee for u64 {
+impl Encode for u64 {
     fn write(&self, encoder: &mut Encoder) {
         if IS_BIG_ENDIAN {
             encoder.write_arr(&self.to_be_bytes());
@@ -69,7 +69,7 @@ impl Encodee for u64 {
     }
 }
 
-impl Encodee for usize {
+impl Encode for usize {
     fn write(&self, encoder: &mut Encoder) {
         if encoder.x64 {
             (*self as u64).write(encoder);
@@ -79,13 +79,13 @@ impl Encodee for usize {
     }
 }
 
-impl Encodee for i8 {
+impl Encode for i8 {
     fn write(&self, encoder: &mut Encoder) {
         encoder.write_byte(*self as u8);
     }
 }
 
-impl Encodee for i16 {
+impl Encode for i16 {
     fn write(&self, encoder: &mut Encoder) {
         if IS_BIG_ENDIAN {
             encoder.write_arr(&self.to_be_bytes());
@@ -95,7 +95,7 @@ impl Encodee for i16 {
     }
 }
 
-impl Encodee for i32 {
+impl Encode for i32 {
     fn write(&self, encoder: &mut Encoder) {
         if IS_BIG_ENDIAN {
             encoder.write_arr(&self.to_be_bytes());
@@ -105,7 +105,7 @@ impl Encodee for i32 {
     }
 }
 
-impl Encodee for i64 {
+impl Encode for i64 {
     fn write(&self, encoder: &mut Encoder) {
         if IS_BIG_ENDIAN {
             encoder.write_arr(&self.to_be_bytes());
@@ -115,7 +115,7 @@ impl Encodee for i64 {
     }
 }
 
-impl Encodee for isize {
+impl Encode for isize {
     fn write(&self, encoder: &mut Encoder) {
         if encoder.x64 {
             (*self as i64).write(encoder);
@@ -125,7 +125,7 @@ impl Encodee for isize {
     }
 }
 
-impl Encodee for f32 {
+impl Encode for f32 {
     fn write(&self, encoder: &mut Encoder) {
         if IS_BIG_ENDIAN {
             encoder.write_arr(&self.to_be_bytes());
@@ -135,7 +135,7 @@ impl Encodee for f32 {
     }
 }
 
-impl Encodee for f64 {
+impl Encode for f64 {
     fn write(&self, encoder: &mut Encoder) {
         if IS_BIG_ENDIAN {
             encoder.write_arr(&self.to_be_bytes());
@@ -145,7 +145,7 @@ impl Encodee for f64 {
     }
 }
 
-impl Encodee for OpCode {
+impl Encode for OpCode {
     fn write(&self, encoder: &mut Encoder) {
         (*self as u8).write(encoder)
     }

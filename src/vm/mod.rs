@@ -6,7 +6,7 @@
 #![feature(macro_metavar_expr)]
 #![feature(macro_metavar_expr_concat)]
 
-use crate::structures::decode::{Decodee, Decoder};
+use crate::structures::decode::{Decode, Decoder};
 use crate::structures::header::BytecodeHeader;
 use clap::Parser;
 use eva::core::OpCode;

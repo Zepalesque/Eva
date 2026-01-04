@@ -1,4 +1,4 @@
-use crate::structures::decode::{Decodee, Decoder};
+use crate::structures::decode::{Decode, Decoder};
 
 #[derive(Copy, Clone)]
 pub struct BytecodeHeader {
@@ -16,7 +16,7 @@ impl BytecodeHeader {
     }
 }
 
-impl Decodee for BytecodeHeader {
+impl Decode for BytecodeHeader {
     fn read<'a>(decoder: &mut Decoder) -> Self {
         let fmt: Format = unsafe { decoder.read_byte() };
         Self { format: fmt }
