@@ -12,9 +12,6 @@ pub enum OpCode {
     SignExt64, // sext<64>
     SignExt32, // sext<32>
     SignExt16, // sext<16>
-    ZeroExt64, // zext<...
-    ZeroExt32,
-    ZeroExt16,
     Truncat32, // trnc<...
     Truncat16,
     Truncat8,

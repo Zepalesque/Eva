@@ -110,15 +110,6 @@ fn start(mut ctx: VmCtx) -> u32 {
             OpCode::SignExt16 => {
                 ctx.read_reg().set(ctx.reg_as::<i8>() as i16);
             },
-            OpCode::ZeroExt64 => {
-                ctx.read_reg().set(ctx.reg_as::<u32>() as u64);
-            },
-            OpCode::ZeroExt32 => {
-                ctx.read_reg().set(ctx.reg_as::<u16>() as u32);
-            },
-            OpCode::ZeroExt16 => {
-                ctx.read_reg().set(ctx.reg_as::<u8>() as u16);
-            },
             OpCode::Truncat32 => {
                 ctx.read_reg().set(ctx.reg_as::<u64>() as u32);
             },
