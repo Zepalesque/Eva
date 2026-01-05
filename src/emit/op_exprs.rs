@@ -1,13 +1,13 @@
 use crate::emit::encode::{Encode, Encoder};
 use crate::emit::monomorph::*;
-use ConstExpr::*;
-use BinExpr::*;
+use OpExpr::*;
 
 pub type RegId = u16;
 
 
 
-pub enum BinExpr<T: Monomorphize> {
+pub enum OpExpr<T: Monomorphize + Encode> {
+    Const{dest: RegId, val: T},
     Add  { first: RegId, second: RegId, dest: RegId, },
     Sub  { first: RegId, second: RegId, dest: RegId, },
     Mul  { first: RegId, second: RegId, dest: RegId, },
@@ -29,9 +29,14 @@ pub enum BinExpr<T: Monomorphize> {
     ToF64 { operand: RegId, dest: RegId, },
 }
 
-impl<T: Encode + Monomorphize> Encode for BinExpr<T> {
+impl<T: Encode + Monomorphize> Encode for OpExpr<T> {
     fn write(&self, encoder: &mut Encoder) {
         match self {
+            Const{dest, val} => {
+                T::resolve(GenericOp::Const).write(encoder);
+                dest.write(encoder);
+                val.write(encoder);
+            }
             Add { first, second, dest } => {
                 T::resolve(GenericOp::Add).write(encoder);
                 first.write(encoder);
@@ -50,21 +55,92 @@ impl<T: Encode + Monomorphize> Encode for BinExpr<T> {
                 second.write(encoder);
                 dest.write(encoder);
             }
-        }
-    }
-}
-
-pub enum ConstExpr<T: Encode + Monomorphize> {
-    Const{dest: RegId, val: T},
-}
-impl<T: Encode + Monomorphize> Encode for ConstExpr<T> {
-    fn write(&self, encoder: &mut Encoder) {
-        match self {
-            Const{dest, val} => {
-                T::resolve(GenericOp::Const).write(encoder);
+            Div { first, second, dest } => {
+                T::resolve(GenericOp::Div).write(encoder);
+                first.write(encoder);
+                second.write(encoder);
                 dest.write(encoder);
-                val.write(encoder);
-            }
+            },
+            Mod { first, second, dest } => {
+                T::resolve(GenericOp::Mod).write(encoder);
+                first.write(encoder);
+                second.write(encoder);
+                dest.write(encoder);
+            },
+            Lsh { first, second, dest } => {
+                T::resolve(GenericOp::Lsh).write(encoder);
+                first.write(encoder);
+                second.write(encoder);
+                dest.write(encoder);
+            },
+            Rsh { first, second, dest } => {
+                T::resolve(GenericOp::Rsh).write(encoder);
+                first.write(encoder);
+                second.write(encoder);
+                dest.write(encoder);
+            },
+            Lrot { first, second, dest } => {
+                T::resolve(GenericOp::Lrot).write(encoder);
+                first.write(encoder);
+                second.write(encoder);
+                dest.write(encoder);
+            },
+            Rrot { first, second, dest } => {
+                T::resolve(GenericOp::Rrot).write(encoder);
+                first.write(encoder);
+                second.write(encoder);
+                dest.write(encoder);
+            },
+            ToU8 { operand, dest } => {
+                T::resolve(GenericOp::ToU8).write(encoder);
+                operand.write(encoder);
+                dest.write(encoder);
+            },
+            ToU16 { operand, dest } => {
+                T::resolve(GenericOp::ToU16).write(encoder);
+                operand.write(encoder);
+                dest.write(encoder);
+            },
+            ToU32 { operand, dest } => {
+                T::resolve(GenericOp::ToU32).write(encoder);
+                operand.write(encoder);
+                dest.write(encoder);
+            },
+            ToU64 { operand, dest } => {
+                T::resolve(GenericOp::ToU64).write(encoder);
+                operand.write(encoder);
+                dest.write(encoder);
+            },
+            ToI8 { operand, dest } => {
+                T::resolve(GenericOp::ToI8).write(encoder);
+                operand.write(encoder);
+                dest.write(encoder);
+            },
+            ToI16 { operand, dest } => {
+                T::resolve(GenericOp::ToI16).write(encoder);
+                operand.write(encoder);
+                dest.write(encoder);
+            },
+            ToI32 { operand, dest } => {
+                T::resolve(GenericOp::ToI32).write(encoder);
+                operand.write(encoder);
+                dest.write(encoder);
+            },
+            ToI64 { operand, dest } => {
+                T::resolve(GenericOp::ToI64).write(encoder);
+                operand.write(encoder);
+                dest.write(encoder);
+            },
+            ToF32 { operand, dest } => {
+                T::resolve(GenericOp::ToF32).write(encoder);
+                operand.write(encoder);
+                dest.write(encoder);
+            },
+            ToF64 { operand, dest } => {
+                T::resolve(GenericOp::ToF64).write(encoder);
+                operand.write(encoder);
+                dest.write(encoder);
+            },
         }
     }
 }
