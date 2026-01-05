@@ -71,7 +71,7 @@ fn main() { unsafe {
         ).map_anon().expect("Failed to create register block").as_ptr();
     let mut decoder: Decoder = Decoder { start: binary.as_ptr(), offs: 0 };
     // PointerSize const param is irrelevant at this point
-    let header: BytecodeHeader = BytecodeHeader::read::<0>(&mut decoder).clone();
+    let header: BytecodeHeader = BytecodeHeader::read(&mut decoder).clone();
 
     let x64 = header.is_x64();
     if size_of::<usize>() < 8 && x64 {

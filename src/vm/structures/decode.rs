@@ -61,23 +61,23 @@ impl Decoder {
 
 
 pub trait Decode {
-    fn read<const PS: usize>(decoder: &mut Decoder) -> Self;
+    fn read(decoder: &mut Decoder) -> Self;
 }
 
 impl Decode for u8 {
-    fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+    fn read(decoder: &mut Decoder) -> Self {
         decoder.read_byte()
     }
 }
 
 impl Decode for bool {
-    fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+    fn read(decoder: &mut Decoder) -> Self {
         decoder.read_byte() != 0
     }
 }
 
 impl Decode for u16 {
-    fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+    fn read(decoder: &mut Decoder) -> Self {
         if IS_BIG_ENDIAN {
             Self::from_be_bytes(decoder.read_arr::<2>())
         } else {
@@ -87,7 +87,7 @@ impl Decode for u16 {
 }
 
 impl Decode for u32 {
-    fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+    fn read(decoder: &mut Decoder) -> Self {
         if IS_BIG_ENDIAN {
             Self::from_be_bytes(decoder.read_arr::<4>())
         } else {
@@ -97,7 +97,7 @@ impl Decode for u32 {
 }
 
 impl Decode for u64 {
-    fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+    fn read(decoder: &mut Decoder) -> Self {
         if IS_BIG_ENDIAN {
             Self::from_be_bytes(decoder.read_arr::<8>())
         } else {
@@ -107,19 +107,19 @@ impl Decode for u64 {
 } 
 
 impl Decode for usize {
-    fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+    fn read(decoder: &mut Decoder) -> Self {
         u64::read(decoder) as usize
     }
 }
 
 impl Decode for i8 {
-    fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+    fn read(decoder: &mut Decoder) -> Self {
         decoder.read_byte() as i8
     }
 }
 
 impl Decode for i16 {
-    fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+    fn read(decoder: &mut Decoder) -> Self {
         if IS_BIG_ENDIAN {
             Self::from_be_bytes(decoder.read_arr::<2>())
         } else {
@@ -129,7 +129,7 @@ impl Decode for i16 {
 }
 
 impl Decode for i32 {
-    fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+    fn read(decoder: &mut Decoder) -> Self {
         if IS_BIG_ENDIAN {
             Self::from_be_bytes(decoder.read_arr::<4>())
         } else {
@@ -139,7 +139,7 @@ impl Decode for i32 {
 }
 
 impl Decode for i64 {
-    fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+    fn read(decoder: &mut Decoder) -> Self {
         if IS_BIG_ENDIAN {
             Self::from_be_bytes(decoder.read_arr::<8>())
         } else {
@@ -149,13 +149,13 @@ impl Decode for i64 {
 }
 
 impl Decode for isize {
-    fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+    fn read(decoder: &mut Decoder) -> Self {
         i64::read(decoder) as isize
     }
 }
 
 impl Decode for f32 {
-    fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+    fn read(decoder: &mut Decoder) -> Self {
         if IS_BIG_ENDIAN {
             Self::from_be_bytes(decoder.read_arr::<4>())
         } else {
@@ -164,7 +164,7 @@ impl Decode for f32 {
 }
 
 impl Decode for f64 {
-    fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+    fn read(decoder: &mut Decoder) -> Self {
         if IS_BIG_ENDIAN {
             Self::from_be_bytes(decoder.read_arr::<8>())
         } else {
@@ -174,7 +174,7 @@ impl Decode for f64 {
 }
 
 impl Decode for OpCode {
-    fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
+    fn read(decoder: &mut Decoder) -> Self {
         let num = OpCodeRepr::read(decoder);
         OpCode::try_from(num).expect("Invalid OpCode found: {}")
     }
