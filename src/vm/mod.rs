@@ -33,12 +33,12 @@ impl VmCtx {
         unsafe { &mut *self.regs.add(idx as usize) }
     }
 
-    pub fn read_reg<const PS: usize>(&mut self) -> &mut Register {
+    pub fn read_reg(&mut self) -> &mut Register {
         let idx = self.decoder.read::<u16>();
         self.get_reg(idx)
     }
 
-    pub fn reg_as<T: Registrant, const PS: usize>(&mut self) -> T {
+    pub fn reg_as<T: Registrant>(&mut self) -> T {
         let idx = self.decoder.read::<u16>();
         self.get_reg(idx).get::<T>()
     }
@@ -50,6 +50,8 @@ struct Args {
     run: PathBuf,
     #[clap(short, long, default_value = "16MiB", help = "The maximum virtual register stack size")]
     reg_size: Size,
+    #[clap(short, long, default_value = "", help = "Program args to pass to the program")]
+    args: Vec<String>,
 }
 
 fn main() { unsafe {
@@ -241,7 +243,6 @@ fn start(mut ctx: VmCtx) -> u32 {
             OpCode::IOr64 => {
                 binary_op!(ctx -> u64: |);
             },
-
             OpCode::IXor32 => {
                 binary_op!(ctx -> u32: ^);
             },
@@ -255,70 +256,98 @@ fn start(mut ctx: VmCtx) -> u32 {
                 unary_op!(ctx -> u64: !);
             },
             OpCode::ILsh8 => {
-                binary_op!(ctx -> u8, u32: <<)
+                binary_op!(ctx -> u8, u32: <<);
             },
             OpCode::ILsh16 => {
-                binary_op!(ctx -> u16, u32: <<)
+                binary_op!(ctx -> u16, u32: <<);
             },
             OpCode::ILsh32 => {
-                binary_op!(ctx -> u32, u32: <<)
+                binary_op!(ctx -> u32, u32: <<);
             },
             OpCode::ILsh64 => {
-                binary_op!(ctx -> u64, u32: <<)
+                binary_op!(ctx -> u64, u32: <<);
             },
             OpCode::IRshU8 => {
-                binary_op!(ctx -> u8, u32: >>)
+                binary_op!(ctx -> u8, u32: >>);
             },
             OpCode::IRshU16 => {
-                binary_op!(ctx -> u16, u32: >>)
+                binary_op!(ctx -> u16, u32: >>);
             },
             OpCode::IRshU32 => {
-                binary_op!(ctx -> u32, u32: >>)
+                binary_op!(ctx -> u32, u32: >>);
             },
             OpCode::IRshU64 => {
-                binary_op!(ctx -> u64, u32: >>)
+                binary_op!(ctx -> u64, u32: >>);
             },
             OpCode::IRshI8 => {
-                binary_op!(ctx -> i8, u32: >>)
+                binary_op!(ctx -> i8, u32: >>);
             },
             OpCode::IRshI16 => {
-                binary_op!(ctx -> i16, u32: >>)
+                binary_op!(ctx -> i16, u32: >>);
             },
             OpCode::IRshI32 => {
-                binary_op!(ctx -> i32, u32: >>)
+                binary_op!(ctx -> i32, u32: >>);
             },
             OpCode::IRshI64 => {
-                binary_op!(ctx -> i64, u32: >>)
+                binary_op!(ctx -> i64, u32: >>);
             },
             OpCode::ILrot8 => {
-                binary_op!(ctx -> u8, u32: rotate_left)
+                binary_op!(ctx -> u8, u32: rotate_left);
             },
             OpCode::ILrot16 => {
-                binary_op!(ctx -> u16, u32: rotate_left)
+                binary_op!(ctx -> u16, u32: rotate_left);
             },
             OpCode::ILrot32 => {
-                binary_op!(ctx -> u32, u32: rotate_left)
+                binary_op!(ctx -> u32, u32: rotate_left);
             },
             OpCode::ILrot64 => {
-                binary_op!(ctx -> u64, u32: rotate_left)
+                binary_op!(ctx -> u64, u32: rotate_left);
             },
             OpCode::IRrot8 => {
-                binary_op!(ctx -> u8, u32: rotate_right)
+                binary_op!(ctx -> u8, u32: rotate_right);
             },
             OpCode::IRrot16 => {
-                binary_op!(ctx -> u16, u32: rotate_right)
+                binary_op!(ctx -> u16, u32: rotate_right);
             },
             OpCode::IRrot32 => {
-                binary_op!(ctx -> u32, u32: rotate_right)
+                binary_op!(ctx -> u32, u32: rotate_right);
             },
             OpCode::IRrot64 => {
-                binary_op!(ctx -> u64, u32: rotate_right)
+                binary_op!(ctx -> u64, u32: rotate_right);
             },
             OpCode::RegAddr => {
                 let start = ctx.regs as usize;
                 let idx = ctx.decoder.read::<u16>() as usize;
                 let reg = ctx.read_reg();
                 reg.set(start + idx);
+            }
+            OpCode::U32ToF64 => {
+                conv!(ctx -> u32 as f64);
+            },
+            OpCode::I32ToF64 => {
+                conv!(ctx -> i32 as f64);
+            },
+            OpCode::U64ToF32 => {
+                conv!(ctx -> u64 as f32);
+            },
+            OpCode::I64ToF32 => {
+                conv!(ctx -> i64 as f32);
+            },
+            OpCode::F32ToU64 => {
+                conv!(ctx -> f32 as u64);
+            },
+            OpCode::F64ToU32 => {
+                conv!(ctx -> f64 as u32);
+            },
+            OpCode::F32ToI64 => {
+                conv!(ctx -> f32 as i64);
+            },
+            OpCode::F64ToI32 => {
+                conv!(ctx -> f64 as i32);
+            },
+            OpCode::Move => {
+                let aux = ctx.reg_as::<u64>();
+                ctx.read_reg().set(aux);
             }
         }
     }
