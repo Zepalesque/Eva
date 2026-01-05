@@ -1,28 +1,40 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 pub const IS_BIG_ENDIAN: bool = true;
 
-#[derive(Debug, Eq, PartialEq, Clone, Copy, TryFromPrimitive, IntoPrimitive)]
+pub type OpCodeRepr = u8;
 #[repr(u8)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy, TryFromPrimitive, IntoPrimitive)]
 pub enum OpCode {
-    Noop, // noop
-    Const8, // const
-    Const16, // const
-    Const32, // const
-    Const64, // const
-    SignExt64, // sext<64>
-    SignExt32, // sext<32>
-    SignExt16, // sext<16>
-    Truncat32, // trnc<...
-    Truncat16,
-    Truncat8,
-    U32ToF32, // utof<32>
-    I32ToF32, // itof<32>
-    U64ToF64, // utof...
+    Noop,
+    Const8,
+    Const16,
+    Const32,
+    Const64,
+    SignExt8To16,
+    SignExt8To32,
+    SignExt8To64,
+    SignExt16To32,
+    SignExt16To64,
+    SignExt32To64,
+    Trunc32,
+    Trunc16,
+    Trunc8,
+    U32ToF32,
+    U32ToF64,
+    I32ToF32,
+    I32ToF64,
+    U64ToF32,
+    U64ToF64,
+    I64ToF32,
     I64ToF64,
-    F32ToU32, // ftou<32>
-    F64ToU64, // ...
-    F32ToI32, // ftoi<...
+    F32ToU32,
+    F32ToU64,
+    F64ToU64,
+    F64ToU32,
+    F32ToI32,
+    F32ToI63,
     F64ToI64,
+    F64ToI32,
     FProm, // fprom (f32 -> f64)
     FDemo, // fdemo (f64 -> f32)
     IAdd32,
@@ -37,40 +49,24 @@ pub enum OpCode {
     IMul64,
     FMul32,
     FMul64,
-    IDivI8,
-    IDivI16,
     IDivI32,
     IDivI64,
-    IDivU8,
-    IDivU16,
     IDivU32,
     IDivU64,
     FDiv32,
     FDiv64,
-    IModI8,
-    IModI16,
     IModI32,
     IModI64,
-    IModU8,
-    IModU16,
     IModU32,
     IModU64,
     FMod32,
     FMod64,
-    IAnd8,
-    IAnd16,
     IAnd32,
     IAnd64,
-    IOr8,
-    IOr16,
     IOr32,
     IOr64,
-    IXor8,
-    IXor16,
     IXor32,
     IXor64,
-    INot8,
-    INot16,
     INot32,
     INot64,
     ILsh8,
@@ -94,4 +90,5 @@ pub enum OpCode {
     IRrot32,
     IRrot64,
     RegAddr,
+    Move, // mov a -> b: copy value of a to value of b
 }

@@ -1,5 +1,5 @@
 use std::slice;
-use eva::core::{OpCode, IS_BIG_ENDIAN};
+use eva::core::{OpCode, OpCodeRepr, IS_BIG_ENDIAN};
 
 #[derive(Copy, Clone)]
 pub struct Decoder {
@@ -32,8 +32,8 @@ impl Decoder {
         arr
     }
 
-    pub fn read<T: Decode, const PS: usize>(&mut self) -> T {
-        T::read::<PS>(self)
+    pub fn read<T: Decode>(&mut self) -> T {
+        T::read(self)
     }
 
     pub fn fork_abs(&self, offs: usize) -> Self {
@@ -107,14 +107,7 @@ impl Decode for u64 {
 
 impl Decode for usize {
     fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
-        let bytes = decoder.read_arr::<PS>();
-        let mut arr = [0u8; 8];
-        arr[0..bytes.len()].copy_from_slice(&bytes);
-        if IS_BIG_ENDIAN {
-            Self::from_be_bytes(arr)
-        } else {
-            Self::from_le_bytes(arr)
-        }
+        u64::read(decoder) as usize
     }
 }
 
@@ -156,14 +149,7 @@ impl Decode for i64 {
 
 impl Decode for isize {
     fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
-        let bytes = decoder.read_arr::<PS>();
-        let mut arr = [0u8; 8];
-        arr[0..bytes.len()].copy_from_slice(&bytes);
-        if IS_BIG_ENDIAN {
-            Self::from_be_bytes(arr)
-        } else {
-            Self::from_le_bytes(arr)
-        }
+        i64::read(decoder) as isize
     }
 }
 
@@ -188,7 +174,7 @@ impl Decode for f64 {
 
 impl Decode for OpCode {
     fn read<const PS: usize>(decoder: &mut Decoder) -> Self {
-        let num = u8::read::<PS>(decoder);
+        let num = OpCodeRepr::read(decoder);
         OpCode::try_from(num).expect("Invalid OpCode found: {}")
     }
 }

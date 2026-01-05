@@ -1,7 +1,6 @@
-use crate::core::{OpCode, IS_BIG_ENDIAN};
+use crate::core::{OpCode, OpCodeRepr, IS_BIG_ENDIAN};
 
 pub struct Encoder {
-    x64: bool,
     bytes: Vec<u8>,
 }
 
@@ -71,11 +70,7 @@ impl Encode for u64 {
 
 impl Encode for usize {
     fn write(&self, encoder: &mut Encoder) {
-        if encoder.x64 {
-            (*self as u64).write(encoder);
-        } else {
-            (*self as u32).write(encoder);
-        }
+        (*self as u64).write(encoder);
     }
 }
 
@@ -117,11 +112,7 @@ impl Encode for i64 {
 
 impl Encode for isize {
     fn write(&self, encoder: &mut Encoder) {
-        if encoder.x64 {
-            (*self as i64).write(encoder);
-        } else {
-            (*self as i32).write(encoder);
-        }
+        (*self as i64).write(encoder);
     }
 }
 
@@ -147,6 +138,6 @@ impl Encode for f64 {
 
 impl Encode for OpCode {
     fn write(&self, encoder: &mut Encoder) {
-        (*self as u8).write(encoder)
+        (*self as OpCodeRepr).write(encoder)
     }
 }
