@@ -1,5 +1,5 @@
 use ConstExpr::*;
-use crate::core::OpCode;
+use crate::core::opcode::OpCode;
 use crate::emit::encode::{Encode, Encoder};
 use crate::emit::monomorph::*;
 

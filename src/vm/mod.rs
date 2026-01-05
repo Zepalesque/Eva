@@ -8,7 +8,7 @@
 use crate::structures::decode::{Decode, Decoder};
 use crate::structures::header::BytecodeHeader;
 use clap::Parser;
-use eva::core::OpCode;
+use eva::core::opcode::OpCode;
 use memmap2::Mmap;
 use memmap2::MmapOptions;
 use size::Size;

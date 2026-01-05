@@ -1,5 +1,6 @@
 use std::slice;
-use eva::core::{OpCode, OpCodeRepr, IS_BIG_ENDIAN};
+use eva::core::IS_BIG_ENDIAN;
+use eva::core::opcode::{OpCode, OpCodeRepr};
 
 #[derive(Copy, Clone)]
 pub struct Decoder {

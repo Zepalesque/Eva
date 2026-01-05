@@ -1,4 +1,5 @@
-use crate::core::{OpCode, OpCodeRepr, IS_BIG_ENDIAN};
+use crate::core::IS_BIG_ENDIAN;
+use crate::core::opcode::{OpCode, OpCodeRepr};
 
 pub struct Encoder {
     bytes: Vec<u8>,
