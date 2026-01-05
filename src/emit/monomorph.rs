@@ -219,20 +219,20 @@ impl Monomorphize for i16 {
     }
 }
 
-impl Monomorphize for u32 {
+impl Monomorphize for i32 {
     fn resolve<'a>(generic: GenericOp) -> MonomorphResult<'a> {
         match generic {
             Const    => mono_res(&[Const32]),
             ToF32    => mono_res(&[I32ToF32]),
             ToF64    => mono_res(&[I32ToF64]),
             ToI8     => mono_res(&[Trunc8]),
-            ToI16     => mono_res(&[Trunc16]),
+            ToI16    => mono_res(&[Trunc16]),
             ToI32    => NO_OP,
-            ToI64    => mono_res(&[SignExt16To64]),
+            ToI64    => mono_res(&[SignExt32To64]),
             ToU8     => mono_res(&[Trunc8]),
-            ToU16    => NO_OP,
-            ToU32    => mono_res(&[SignExt16To32]),
-            ToU64    => mono_res(&[SignExt16To64]),
+            ToU16    => mono_res(&[Trunc16]),
+            ToU32    => NO_OP,
+            ToU64    => mono_res(&[SignExt32To64]),
             Add      => mono_res(&[IAdd32]),
             Sub      => mono_res(&[ISub32]),
             Mul      => mono_res(&[IMul32]),
@@ -242,39 +242,39 @@ impl Monomorphize for u32 {
             Or       => mono_res(&[IOr32]),
             Xor      => mono_res(&[IXor32]),
             Not      => mono_res(&[IXor32]),
-            Lsh      => mono_res(&[ILsh16]),
-            Rsh      => mono_res(&[IRshI16]),
-            Lrot     => mono_res(&[ILrot16]),
-            Rrot     => mono_res(&[IRrot16]),
+            Lsh      => mono_res(&[ILsh32]),
+            Rsh      => mono_res(&[IRshI32]),
+            Lrot     => mono_res(&[ILrot32]),
+            Rrot     => mono_res(&[IRrot32]),
         }
     }
 }
 
-impl Monomorphize for u64 {
+impl Monomorphize for i64 {
     fn resolve<'a>(generic: GenericOp) -> MonomorphResult<'a> {
         match generic {
             Const    => mono_res(&[Const64]),
-            ToF32    => mono_res(&[U64ToF32]),
-            ToF64    => mono_res(&[U64ToF64]),
+            ToF32    => mono_res(&[I64ToF32]),
+            ToF64    => mono_res(&[I64ToF64]),
             ToI8     => mono_res(&[Trunc8]),
             ToI16    => mono_res(&[Trunc16]),
-            ToU8     => mono_res(&[Trunc8]),
-            ToU16    => mono_res(&[Trunc16]),
             ToI32    => mono_res(&[Trunc32]),
             ToI64    => NO_OP,
+            ToU8     => mono_res(&[Trunc8]),
+            ToU16    => mono_res(&[Trunc16]),
             ToU32    => mono_res(&[Trunc32]),
             ToU64    => NO_OP,
             Add      => mono_res(&[IAdd64]),
             Sub      => mono_res(&[ISub64]),
             Mul      => mono_res(&[IMul64]),
-            Div      => mono_res(&[IDivU64]),
-            Mod      => mono_res(&[IModU64]),
+            Div      => mono_res(&[IDivI64]),
+            Mod      => mono_res(&[IModI64]),
             And      => mono_res(&[IAnd64]),
             Or       => mono_res(&[IOr64]),
             Xor      => mono_res(&[IXor64]),
             Not      => mono_res(&[IXor64]),
             Lsh      => mono_res(&[ILsh64]),
-            Rsh      => mono_res(&[IRshU64]),
+            Rsh      => mono_res(&[IRshI64]),
             Lrot     => mono_res(&[ILrot64]),
             Rrot     => mono_res(&[IRrot64]),
         }
