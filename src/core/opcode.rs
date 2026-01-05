@@ -32,7 +32,7 @@ pub enum OpCode {
     F64ToU64,
     F64ToU32,
     F32ToI32,
-    F32ToI63,
+    F32ToI64,
     F64ToI64,
     F64ToI32,
     FProm, // fprom (f32 -> f64)
