@@ -7,12 +7,17 @@ pub struct BytecodeHeader {
 
 type Format = u8;
 
-const IS_X64: Format = 1;
+const IS_EXECUTABLE: Format = 1;
+const IS_X64: Format = 2;
 
 
 impl BytecodeHeader {
     pub fn is_x64(&self) -> bool {
-        self.format == IS_X64
+        self.format & IS_X64 != 0
+    }
+
+    pub fn is_exec(&self) -> bool {
+        self.format & IS_EXECUTABLE != 0
     }
 }
 

@@ -16,6 +16,7 @@ use std::fs::File;
 use std::path::PathBuf;
 use structures::registers::*;
 use dispatch::*;
+use eva::core::RegIdRepr;
 
 mod structures;
 mod dispatch;
@@ -29,13 +30,12 @@ struct VmCtx {
 }
 
 impl VmCtx {
-    pub fn get_reg(&mut self, idx: u16) -> &mut Register {
+    pub fn get_reg(&mut self, idx: RegIdRepr) -> &mut Register {
         unsafe { &mut *self.regs.add(idx as usize) }
     }
 
-    pub fn read_reg(&mut self) -> &mut Register {
-        let idx = self.decoder.read::<u16>();
-        self.get_reg(idx)
+    pub fn read_regid(&mut self) -> RegIdRepr {
+        self.decoder.read::<RegIdRepr>()
     }
 
     pub fn reg_as<T: Registrant>(&mut self) -> T {
@@ -73,9 +73,14 @@ fn main() { unsafe {
     // PointerSize const param is irrelevant at this point
     let header: BytecodeHeader = BytecodeHeader::read(&mut decoder).clone();
 
+    let exec = header.is_exec();
+    if !exec {
+        panic!("LOAD ERR: Tried to run a non-executable!")
+    }
+
     let x64 = header.is_x64();
     if size_of::<usize>() < 8 && x64 {
-        panic!("Tried to run x64 program on x86 system!")
+        panic!("LOAD ERR: Tried to run x64 program on x86 system!")
     }
 
     let ctx: VmCtx = VmCtx {
@@ -100,7 +105,11 @@ fn start(mut ctx: VmCtx) -> u32 {
                 read!(ctx -> u32);
             }
             OpCode::Const64 => {
-                read!(ctx -> u64);
+                {
+                    let reg = ctx.read_regid();
+                    let aux: u64 = ctx.decoder.read::<u64>();
+                    ctx.get_reg(reg).set(aux)
+                }
             }
             OpCode::SignExt32To64 => {
                 conv!(ctx -> i32 as i64);
@@ -316,10 +325,10 @@ fn start(mut ctx: VmCtx) -> u32 {
                 binary_op!(ctx -> u64, u32: rotate_right);
             },
             OpCode::RegAddr => {
+                let reg = ctx.read_regid();
                 let start = ctx.regs as usize;
                 let idx = ctx.decoder.read::<u16>() as usize;
-                let reg = ctx.read_reg();
-                reg.set(start + idx);
+                ctx.get_reg(reg).set(start + idx);
             }
             OpCode::U32ToF64 => {
                 conv!(ctx -> u32 as f64);
@@ -345,9 +354,134 @@ fn start(mut ctx: VmCtx) -> u32 {
             OpCode::F64ToI32 => {
                 conv!(ctx -> f64 as i32);
             },
-            OpCode::Move => {
+            OpCode::Copy => {
+                let reg = ctx.read_regid();
                 let aux = ctx.reg_as::<u64>();
-                ctx.read_reg().set(aux);
+                ctx.get_reg(reg).set(aux);
+            },
+            OpCode::Load8 => {
+                load!(ctx -> u8);
+            },
+            OpCode::Load16 => {
+                load!(ctx -> u16);
+
+            },
+            OpCode::Load32 => {
+                load!(ctx -> u32);
+
+            },
+            OpCode::Load64 => {
+                load!(ctx -> u64);
+            },
+            OpCode::Store8 => {
+                store!(ctx -> u8)
+            },
+            OpCode::Store16 => {
+                store!(ctx -> u16)
+            },
+            OpCode::Store32 => {
+                store!(ctx -> u32)
+            },
+            OpCode::Store64 => {
+                store!(ctx -> u64)
+            },
+            OpCode::GotoDir => {
+                let offs = ctx.decoder.read::<isize>();
+                ctx.decoder.offs(offs);
+            }
+            OpCode::BranchZr => {
+                let reg = ctx.read_regid();
+                let offs = ctx.decoder.read::<isize>();
+                if ctx.get_reg(reg).get::<u64>() == 0 {
+                    ctx.decoder.offs(offs);
+                }
+            }
+            OpCode::BranchNZr => {
+                let reg = ctx.read_regid();
+                let offs = ctx.decoder.read::<isize>();
+                if ctx.get_reg(reg).get::<u64>() != 0 {
+                    ctx.decoder.offs(offs);
+                }
+            }
+            OpCode::BranchEq => {
+                let r0 = ctx.read_regid();
+                let r1 = ctx.read_regid();
+                let offs = ctx.decoder.read::<isize>();
+                if ctx.get_reg(r0).get::<u64>() == ctx.get_reg(r1).get::<u64>() {
+                    ctx.decoder.offs(offs);
+                }
+            }
+            OpCode::BranchNEq => {
+                let r0 = ctx.read_regid();
+                let r1 = ctx.read_regid();
+                let offs = ctx.decoder.read::<isize>();
+                if ctx.get_reg(r0).get::<u64>() != ctx.get_reg(r1).get::<u64>() {
+                    ctx.decoder.offs(offs);
+                }
+            }
+            OpCode::UBranchGt => {
+                let r0 = ctx.read_regid();
+                let r1 = ctx.read_regid();
+                let offs = ctx.decoder.read::<isize>();
+                if ctx.get_reg(r0).get::<u64>() > ctx.get_reg(r1).get::<u64>() {
+                    ctx.decoder.offs(offs);
+                }
+            }
+            OpCode::UBranchLt => {
+                let r0 = ctx.read_regid();
+                let r1 = ctx.read_regid();
+                let offs = ctx.decoder.read::<isize>();
+                if ctx.get_reg(r0).get::<u64>() < ctx.get_reg(r1).get::<u64>() {
+                    ctx.decoder.offs(offs);
+                }
+            }
+            OpCode::UBranchGe => {
+                let r0 = ctx.read_regid();
+                let r1 = ctx.read_regid();
+                let offs = ctx.decoder.read::<isize>();
+                if ctx.get_reg(r0).get::<u64>() >= ctx.get_reg(r1).get::<u64>() {
+                    ctx.decoder.offs(offs);
+                }
+            }
+            OpCode::UBranchLe => {
+                let r0 = ctx.read_regid();
+                let r1 = ctx.read_regid();
+                let offs = ctx.decoder.read::<isize>();
+                if ctx.get_reg(r0).get::<u64>() <= ctx.get_reg(r1).get::<u64>() {
+                    ctx.decoder.offs(offs);
+                }
+            }
+            OpCode::IBranchGt => {
+                let r0 = ctx.read_regid();
+                let r1 = ctx.read_regid();
+                let offs = ctx.decoder.read::<isize>();
+                if ctx.get_reg(r0).get::<i64>() > ctx.get_reg(r1).get::<i64>() {
+                    ctx.decoder.offs(offs);
+                }
+            }
+            OpCode::IBranchLt => {
+                let r0 = ctx.read_regid();
+                let r1 = ctx.read_regid();
+                let offs = ctx.decoder.read::<isize>();
+                if ctx.get_reg(r0).get::<i64>() < ctx.get_reg(r1).get::<i64>() {
+                    ctx.decoder.offs(offs);
+                }
+            }
+            OpCode::IBranchGe => {
+                let r0 = ctx.read_regid();
+                let r1 = ctx.read_regid();
+                let offs = ctx.decoder.read::<isize>();
+                if ctx.get_reg(r0).get::<i64>() >= ctx.get_reg(r1).get::<i64>() {
+                    ctx.decoder.offs(offs);
+                }
+            }
+            OpCode::IBranchLe => {
+                let r0 = ctx.read_regid();
+                let r1 = ctx.read_regid();
+                let offs = ctx.decoder.read::<isize>();
+                if ctx.get_reg(r0).get::<i64>() <= ctx.get_reg(r1).get::<i64>() {
+                    ctx.decoder.offs(offs);
+                }
             }
         }
     }

@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use chumsky::container::Container;
 
 pub struct StructLayout {
     fields: HashMap<String, Field>,
@@ -10,11 +9,17 @@ pub struct Field {
     pub(crate) size: usize,
 }
 
+impl Field {
+    pub(crate) fn endpoint(&self) -> usize {
+        self.start_offs + self.size
+    }
+}
+
 impl StructLayout {
     pub fn size(&self) -> usize {
         self.fields
             .values()
-            .map(|f| f.start_offs + f.size)
+            .map(Field::endpoint)
             .max()
             .unwrap_or(0)
     }
@@ -24,6 +29,10 @@ impl StructLayout {
     }
 
     pub fn push(&mut self, name: String, offs: usize, size: usize) {
-        self.fields.push((name, Field {start_offs: offs, size}));
+        self.fields.insert(name, Field {start_offs: offs, size});
+    }
+
+    pub fn get(&self, name: &str) -> Option<&Field> {
+        self.fields.get(name)
     }
 }

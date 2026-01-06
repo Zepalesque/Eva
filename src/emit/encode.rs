@@ -1,11 +1,17 @@
-use crate::core::IS_BIG_ENDIAN;
 use crate::core::opcode::{OpCode, OpCodeRepr};
+use crate::core::IS_BIG_ENDIAN;
+use crate::emit::var_helper::VarHelper;
 
 pub struct Encoder {
     bytes: Vec<u8>,
+    vars: Vec<VarHelper>,
 }
 
 impl Encoder {
+    pub fn vars(&mut self) -> &mut VarHelper {
+        self.vars.last_mut().expect("No var helpers present!")
+    }
+
     fn write_byte(&mut self, byte: u8) {
         self.bytes.push(byte);
     }
@@ -30,6 +36,12 @@ pub trait Encode {
 impl Encode for u8 {
     fn write(&self, encoder: &mut Encoder) {
         encoder.write_byte(*self);
+    }
+}
+
+impl Encode for &[u8] {
+    fn write(&self, encoder: &mut Encoder) {
+        encoder.write_slice(*self);
     }
 }
 

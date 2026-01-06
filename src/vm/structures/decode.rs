@@ -37,25 +37,9 @@ impl Decoder {
         T::read(self)
     }
 
-    pub fn fork_abs(&self, offs: usize) -> Self {
-        Self {
-            start: self.start,
-            offs,
-        }
-    }
-
-    pub fn fork_inc(&self, offs: usize) -> Self {
-        Self {
-            start: self.start,
-            offs: self.offs + offs,
-        }
-    }
-
-    pub fn fork_dec(&self, offs: usize) -> Self {
-        Self {
-            start: self.start,
-            offs: self.offs - offs,
-        }
+    pub fn offs(&mut self, offs: isize) {
+        let new = self.offs.wrapping_add_signed(offs);
+        self.offs = new;
     }
 }
 
