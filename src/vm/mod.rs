@@ -91,7 +91,7 @@ fn main() { unsafe {
     start(ctx);
 }}
 
-fn start(mut ctx: VmCtx) -> u32 {
+fn start(mut ctx: VmCtx) -> u64 {
     loop {
         match ctx.decoder.read::<OpCode>() {
             OpCode::Noop => { continue; }
@@ -482,6 +482,10 @@ fn start(mut ctx: VmCtx) -> u32 {
                 if ctx.get_reg(r0).get::<i64>() <= ctx.get_reg(r1).get::<i64>() {
                     ctx.decoder.offs(offs);
                 }
+            }
+            OpCode::Halt => {
+                let r0 = ctx.read_regid();
+                return ctx.get_reg(r0).get::<u64>();
             }
         }
     }
