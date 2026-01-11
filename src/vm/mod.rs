@@ -364,11 +364,9 @@ fn start(mut ctx: VmCtx) -> u64 {
             },
             OpCode::Load16 => {
                 load!(ctx -> u16);
-
             },
             OpCode::Load32 => {
                 load!(ctx -> u32);
-
             },
             OpCode::Load64 => {
                 load!(ctx -> u64);
