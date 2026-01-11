@@ -12,9 +12,8 @@ pastey = "0.2.1"
 memmap2 = "0.9.9"
 clap = { version = "4.5.53", features = ["derive"] }
 size = "0.5.0"
-extendable_vm = "0.4.0"
-cranelift = "0.127.0"
 num_enum = "0.7.5"
+inkwell = "0.8.0"
 
 
 [lib]
@@ -22,5 +21,5 @@ name = "eva"
 path = "src/lib.rs"
 
 [[bin]]
-name = "vm"
-path = "src/vm/mod.rs"
+name = "evac"
+path = "src/evac/mod.rs"
